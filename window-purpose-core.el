@@ -53,6 +53,20 @@
   (with-current-buffer buffer-or-name
     major-mode))
 
+(defun purpose--get-zoning-buffer ()
+  "Get the buffer being zoned by zone.el."
+  (get 'zone 'orig-buffer))
+
+(defun purpose--zone-buffer-purpose (buffer-or-name)
+  "Get buffer's purpose for the *zone* buffer of zone.el.
+The *zone* buffer should always open on top of the buffer upon
+which it was called, hence it must have the same purpose"
+  (let ((name (if (stringp buffer-or-name)
+                  buffer-or-name
+                (buffer-name buffer-or-name))))
+    (when (string= "*zone*" name)
+      (purpose-buffer-purpose (purpose--get-zoning-buffer)))))
+
 (defun purpose--dummy-buffer-name (purpose)
   "Create the name for a dummy buffer with purpose PURPOSE.
 The name created is \"*pu-dummy-PURPOSE-*\".  e.g. for purpose 'edit,
@@ -131,6 +145,9 @@ And if `purpose-use-default-configuration' is non-nil, consult also:
 
 If no purpose was determined, return `default-purpose'."
   (or
+   ;; check *zone* buffer of zone.el
+   (purpose--zone-buffer-purpose buffer-or-name)
+
    ;; check dummy buffer
    (purpose--dummy-buffer-purpose buffer-or-name)
 
